@@ -115,25 +115,6 @@ describe('JSON RPC 2.0 Websocket manage connection', () => {
 
     expect([WebsocketReadyStates.CLOSED, WebsocketReadyStates.CLOSING]).toContain(websocket.state);
   });
-
-  it('should indicate that no websocket was opened, if no socket was opened when trying to close', async () => {
-    await websocket.close();
-
-    const closeEvent = await websocket.close();
-
-    let type
-    let wasClean
-    let code
-
-    if (typeof closeEvent !== 'boolean') {
-      type = closeEvent.type
-      wasClean = closeEvent.wasClean
-      code = closeEvent.code
-    }
-    expect(type).toBe('No websocket was opened');
-    expect(wasClean).toBeFalsy();
-    expect(code).toBe(1005);
-  });
 });
 
 describe('JSON RPC 2.0 Websocket send requests', () => {
