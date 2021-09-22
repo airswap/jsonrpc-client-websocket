@@ -17,6 +17,8 @@ interface PendingRequest {
 
 export type ErrorCallback = (error: JsonRpcError) => void;
 
+let websocketFactory: ((url: string) => WebSocket) | null;
+
 export class JsonRpcWebsocket {
   public jsonRpcVersion = '2.0';
 
@@ -37,6 +39,10 @@ export class JsonRpcWebsocket {
     return this.websocket ? this.websocket.readyState : WebsocketReadyStates.CLOSED;
   }
 
+  public static setWebSocketFactory(factoryFn: ((url: string) => WebSocket) | null): void {
+    websocketFactory = factoryFn;
+  }
+
   constructor(private url: string, private requestTimeoutMs: number, private onError?: ErrorCallback) {
     this.pendingRequests = {};
     this.rpcMethods = {};
@@ -50,9 +56,11 @@ export class JsonRpcWebsocket {
     return this.createWebsocket();
   }
 
-  public close(): Promise<CloseEvent> {
+  public close(): Promise<CloseEvent | boolean> {
     if (this.websocket === undefined) {
-      return Promise.resolve(new CloseEvent('No websocket was opened', { wasClean: false, code: 1005 }));
+      return Promise.resolve(
+        globalThis.CloseEvent ? new CloseEvent('No websocket was opened', { wasClean: false, code: 1005 }) : true,
+      );
     }
 
     this.websocket.close(1000); // 1000 = normal closure
@@ -117,7 +125,11 @@ export class JsonRpcWebsocket {
     // See https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent for close event codes
 
     // this.websocket = new WebSocket(this.url, ['jsonrpc-2.0']);
-    this.websocket = new WebSocket(this.url);
+    if (websocketFactory) {
+      this.websocket = websocketFactory(this.url);
+    } else {
+      this.websocket = new WebSocket(this.url);
+    }
 
     const openDeferredPromise = new DeferredPromise<Event>();
     this.closeDeferredPromise = new DeferredPromise<CloseEvent>();
@@ -177,7 +189,7 @@ export class JsonRpcWebsocket {
       jsonrpc: this.jsonRpcVersion,
       error: error,
       id: id,
-      result: result
+      result: result,
     };
 
     try {
@@ -236,9 +248,15 @@ export class JsonRpcWebsocket {
       return;
     }
 
-    const result = method(...requestParams);
-    if (request.id) {
-      this.respondOk(request.id, result);
+    try {
+      const result = method(...requestParams);
+      if (request.id) {
+        this.respondOk(request.id, result);
+      }
+    } catch (e) {
+      if (request.id) {
+        this.respondError(request.id, e);
+      }
     }
   }
 
@@ -249,7 +267,7 @@ export class JsonRpcWebsocket {
       if (request.params instanceof Array) {
         if (method.length !== request.params.length) {
           throw new Error(
-            `Invalid parameters. Method '${request.method}' expects ${method.length} parameters, but got ${request.params.length}`
+            `Invalid parameters. Method '${request.method}' expects ${method.length} parameters, but got ${request.params.length}`,
           );
         }
         requestParams = request.params;
@@ -258,15 +276,19 @@ export class JsonRpcWebsocket {
 
         if (method.length !== Object.keys(request.params).length) {
           throw new Error(
-            `Invalid parameters. Method '${request.method}' expects parameters [${parameterNames}], but got [${Object.keys(request.params)}]`
+            `Invalid parameters. Method '${
+              request.method
+            }' expects parameters [${parameterNames}], but got [${Object.keys(request.params)}]`,
           );
         }
 
-        parameterNames.forEach(paramName => {
+        parameterNames.forEach((paramName) => {
           const paramValue = request.params[paramName];
           if (paramValue === undefined) {
             throw new Error(
-              `Invalid parameters. Method '${request.method}' expects parameters [${parameterNames}], but got [${Object.keys(request.params)}]`
+              `Invalid parameters. Method '${
+                request.method
+              }' expects parameters [${parameterNames}], but got [${Object.keys(request.params)}]`,
             );
           }
           requestParams.push(paramValue);
@@ -288,7 +310,7 @@ export class JsonRpcWebsocket {
       return;
     }
 
-    self.clearTimeout(activeRequest.timeout);
+    clearTimeout(activeRequest.timeout);
 
     if (this.hasProperty(response, 'result') && this.hasProperty(response, 'error')) {
       const errorResponse: JsonRpcResponse = {
@@ -329,7 +351,7 @@ export class JsonRpcWebsocket {
   }
 
   private setupRequestTimeout(requestId: number): number {
-    return self.setTimeout(() => {
+    return setTimeout(() => {
       const activeRequest = this.pendingRequests[requestId];
 
       // istanbul ignore if
@@ -349,7 +371,7 @@ export class JsonRpcWebsocket {
       delete this.pendingRequests[requestId];
 
       activeRequest.response.reject(response);
-    }, this.requestTimeoutMs);
+    }, this.requestTimeoutMs) as unknown as number;
   }
 
   private callOnError(error: JsonRpcError): void {
