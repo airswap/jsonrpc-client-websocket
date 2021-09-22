@@ -13,10 +13,10 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tsc --noEmit && eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "prepublishOnly": "npm test && npm run lint",
-    "prepare": "npm run build",
-    "preversion": "npm run lint",
-    "version": "npm run format && git add -A src",
+    "prepublishOnly": "yarn test && yarn run lint",
+    "prepare": "yarn run build",
+    "preversion": "yarn run lint",
+    "version": "yarn run format && git add -A src",
     "postversion": "git push && git push --tags"
   },
   "repository": {
