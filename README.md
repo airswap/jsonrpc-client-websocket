@@ -1,20 +1,18 @@
-[![Travis build status](https://travis-ci.com/fabriciobastian/jsonrpc-client-websocket.svg?branch=master)](https://travis-ci.com/fabriciobastian/jsonrpc-client-websocket) [![License](https://img.shields.io/github/license/fabriciobastian/jsonrpc-client-websocket)](https://choosealicense.com/licenses/mit/) [![NPM downloads](https://img.shields.io/npm/dt/jsonrpc-client-websocket.svg)](https://www.npmjs.com/package/jsonrpc-client-websocket) 
+# JSON-RPC 2.0 Client over WebSockets
 
-![jsonrpc-client-websocket](https://github.com/fabriciobastian/jsonrpc-client-websocket/blob/master/assets/jsonrpc-client-websocket-banner-light-small.png?raw=true)
-
-A simple JSON RPC 2.0 client over websockets
+Forked from https://github.com/fabriciobastian/jsonrpc-client-websocket
 
 ## Open connection
 
 ```typescript
-const websocketUrl = "ws://mywebsocketurl:port"
+const websocketUrl = 'ws://mywebsocketurl:port';
 const requestTimeoutMs = 2000;
-const websocket = new JsonRpcWebsocket(
-    websocketUrl,
-    requestTimeoutMs,
-    (error: JsonRpcError) => { /* handle error */ });
+const websocket = new JsonRpcWebsocket(websocketUrl, requestTimeoutMs, (error: JsonRpcError) => {
+  /* handle error */
+});
 await websocket.open();
 ```
+
 Requests that do not receive a response within the specified timeout will fail with a REQUEST_TIMEOUT code.
 The callback (optional) is used for eventual errors, such as receiving a response that does not match any request id and
 connection errors. Furthermore, all errors that are sent to an eventual caller are also reported on the callback, e.g.
@@ -33,25 +31,27 @@ Considering that the server has a method `sum(a: int, b: int)`
 ### with positional parameters
 
 ```typescript
-websocket.call('sum', [1,2])
-    .then((response) => {
-        // handle response
-    })
-    .catch((error) => {
-        // handle error
-    });
+websocket
+  .call('sum', [1, 2])
+  .then((response) => {
+    // handle response
+  })
+  .catch((error) => {
+    // handle error
+  });
 ```
 
 ### with named parameters
 
 ```typescript
-websocket.call('sum', {b: 1, a: 2})
-    .then((response) => {
-        // handle response
-    })
-    .catch((error) => {
-        // handle error
-    });
+websocket
+  .call('sum', { b: 1, a: 2 })
+  .then((response) => {
+    // handle response
+  })
+  .catch((error) => {
+    // handle error
+  });
 ```
 
 ## Send notification
@@ -66,12 +66,14 @@ websocket.notify('log', ['a log message']);
 
 ```typescript
 websocket.on('sum', (a: number, b: number) => {
-    return a + b;
+  return a + b;
 });
 ```
+
 The defined RPC methods can also be called with both positional and named parameters.
 
 ## Remove RPC method
+
 ```typescript
 websocket.off('sum');
 ```

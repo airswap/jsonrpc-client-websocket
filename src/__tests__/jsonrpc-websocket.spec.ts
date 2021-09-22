@@ -100,7 +100,9 @@ describe('JSON RPC 2.0 Websocket manage connection', () => {
 
     const closeEvent = await websocket.close();
 
-    expect(closeEvent.code).toEqual(1000); // normal closure
+    if (typeof closeEvent !== 'boolean') {
+      expect(closeEvent.code).toEqual(1000); // normal closure
+    }
     await server.closed;
   });
 
@@ -118,9 +120,11 @@ describe('JSON RPC 2.0 Websocket manage connection', () => {
 
     const closeEvent = await websocket.close();
 
-    expect(closeEvent.type).toBe('No websocket was opened');
-    expect(closeEvent.wasClean).toBeFalsy();
-    expect(closeEvent.code).toBe(1005);
+    if (typeof closeEvent !== 'boolean') {
+      expect(closeEvent.type).toBe('No websocket was opened');
+      expect(closeEvent.wasClean).toBeFalsy();
+      expect(closeEvent.code).toBe(1005);
+    }
   });
 });
 
@@ -263,7 +267,7 @@ describe('JSON RPC 2.0 Websocket receive requests', () => {
     });
 
     server.send(request);
-    
+
     await expect(server).toReceiveMessage(expectedResponse);
     await expect(andCalled.asPromise()).resolves.toBeTruthy();
   });

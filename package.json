@@ -1,7 +1,7 @@
 {
-  "name": "jsonrpc-client-websocket",
-  "version": "1.4.2",
-  "description": "A simple JSON RPC 2.0 websocket client",
+  "name": "@airswap/jsonrpc-client-websocket",
+  "version": "0.0.1",
+  "description": "JSON-RPC over WebSockets",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -21,12 +21,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fabriciobastian/jsonrpc-client-websocket.git"
+    "url": "git+https://github.com/airswap/jsonrpc-client-websocket"
   },
-  "bugs": {
-    "url": "https://github.com/fabriciobastian/jsonrpc-client-websocket/issues"
-  },
-  "homepage": "https://github.com/fabriciobastian/jsonrpc-client-websocket#readme",
   "keywords": [
     "websocket",
     "jsonrpc",
@@ -34,7 +30,6 @@
     "json",
     "rpc"
   ],
-  "author": "Fabricio Bastian",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^26.0.14",
